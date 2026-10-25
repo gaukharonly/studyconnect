@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyConnect</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="header">
+    <a class="logo" href="index.html">StudyConnect</a>
+    <nav aria-label="Account">
+      <button type="button" id="login-button">Log in</button>
+      <button type="button" id="register-button">Sign up</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">LEARN BETTER TOGETHER</p>
+      <h1>Find your study people.</h1>
+      <p>
+        Meet study partners, build project teams
+        and prepare for exams together.
+      </p>
+      <a href="#opportunities" class="primary-button">
+        Explore opportunities
+      </a>
+    </section>
+
+    <section id="opportunities" aria-labelledby="opportunities-title">
+      <div class="section-heading">
+        <div>
+          <h2 id="opportunities-title">Study opportunities</h2>
+          <p>Find a group that matches your interests.</p>
+        </div>
+        <button type="button" id="create-button">+ Create post</button>
+      </div>
+
+      <div class="filters">
+        <div>
+          <label for="search">Search</label>
+          <input
+            type="search"
+            id="search"
+            placeholder="Search by title or subject"
+          >
+        </div>
+
+        <div>
+          <label for="subject-filter">Subject</label>
+          <select id="subject-filter">
+            <option value="">All subjects</option>
+            <option value="Calculus">Calculus</option>
+            <option value="Linear Algebra">Linear Algebra</option>
+            <option value="ICT">ICT</option>
+            <option value="Programming">Programming</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="type-filter">Activity type</label>
+          <select id="type-filter">
+            <option value="">All activities</option>
+            <option value="Study session">Study session</option>
+            <option value="Project team">Project team</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="demo-notice">
+        Preview: these are example posts, not real activities.
+      </p>
+<label class="my-posts-toggle">
+  <input id="my-posts-only" type="checkbox">
+  Show only my posts
+</label>
+      <div id="posts" class="posts"></div>
+      <p id="empty-state" hidden>No matching posts found.</p>
+      <p id="status" role="status"></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>StudyConnect · Learn. Connect. Grow.</p>
+  </footer>
+  <dialog id="post-dialog" aria-labelledby="post-title">
+  <h2 id="post-title">Create a study opportunity</h2>
+  <p>Find people to study or build a project together.</p>
+
+  <form id="post-form">
+    <label for="post-name">Title</label>
+    <input
+      id="post-name"
+      type="text"
+      placeholder="For example: Calculus exam preparation"
+      maxlength="100"
+      required
+    >
+
+    <label for="post-subject">Subject</label>
+    <select id="post-subject" required>
+      <option value="">Choose a subject</option>
+      <option value="Calculus">Calculus</option>
+      <option value="Linear Algebra">Linear Algebra</option>
+      <option value="ICT">ICT</option>
+      <option value="Programming">Programming</option>
+    </select>
+
+    <label for="post-type">Activity type</label>
+    <select id="post-type" required>
+      <option value="">Choose an activity</option>
+      <option value="Study session">Study session</option>
+      <option value="Project team">Project team</option>
+    </select>
+
+    <label for="post-description">Description</label>
+    <textarea
+      id="post-description"
+      rows="4"
+      placeholder="What will you work on together?"
+      maxlength="2000"
+      required
+    ></textarea>
+
+    <label for="post-location">Location</label>
+    <input
+      id="post-location"
+      type="text"
+      placeholder="For example: University library or Online"
+      maxlength="200"
+      required
+    >
+
+    <label for="post-capacity">Maximum participants, including you</label>
+    <input
+      id="post-capacity"
+      type="number"
+      min="2"
+      max="50"
+      value="5"
+      required
+    >
+
+    <p id="post-message" role="status"></p>
+
+    <button id="post-submit" type="submit">Publish post</button>
+    <button id="post-close" type="button">Cancel</button>
+  </form>
+</dialog>
+  <dialog id="auth-dialog" aria-labelledby="auth-title">
+  <h2 id="auth-title">Log in</h2>
+  <p id="auth-description">Welcome back to StudyConnect.</p>
+
+  <form id="auth-form">
+    <div id="name-field" hidden>
+      <label for="auth-name">Your name</label>
+      <input
+        id="auth-name"
+        type="text"
+        autocomplete="name"
+        maxlength="60"
+      >
+    </div>
+
+    <label for="auth-email">Email</label>
+    <input
+      id="auth-email"
+      type="email"
+      autocomplete="email"
+      required
+    >
+
+    <label for="auth-password">Password</label>
+    <input
+      id="auth-password"
+      type="password"
+      autocomplete="current-password"
+      minlength="8"
+      required
+    >
+
+    <p id="auth-message" role="status"></p>
+
+    <button type="submit" id="auth-submit">Log in</button>
+    <button type="button" id="auth-close">Cancel</button>
+  </form>
+</dialog>
+  <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyA637P9nM-MFpbxg8KFesN0irXMKc2-yPY",
+    authDomain: "studyconnect-d544f.firebaseapp.com",
+    projectId: "studyconnect-d544f",
+    storageBucket: "studyconnect-d544f.firebasestorage.app",
+    messagingSenderId: "229894822593",
+    appId: "1:229894822593:web:5900d3a4d971bb3f079240"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+const auth = getAuth(app);
+
+const authDialog = document.getElementById("auth-dialog");
+const authForm = document.getElementById("auth-form");
+const authTitle = document.getElementById("auth-title");
+const authDescription = document.getElementById("auth-description");
+const nameField = document.getElementById("name-field");
+const nameInput = document.getElementById("auth-name");
+const emailInput = document.getElementById("auth-email");
+const passwordInput = document.getElementById("auth-password");
+const authMessage = document.getElementById("auth-message");
+const submitButton = document.getElementById("auth-submit");
+const closeButton = document.getElementById("auth-close");
+
+const loginButton = document.getElementById("login-button");
+const registerButton = document.getElementById("register-button");
+const pageStatus = document.getElementById("status");
+
+let authMode = "login";
+let busy = false;
+
+function openAuth(mode) {
+  authMode = mode;
+  authForm.reset();
+  authMessage.textContent = "";
+
+  const isRegister = mode === "register";
+
+  authTitle.textContent = isRegister ? "Create account" : "Log in";
+  authDescription.textContent = isRegister
+    ? "Join your study community."
+    : "Welcome back to StudyConnect.";
+
+  submitButton.textContent = isRegister ? "Sign up" : "Log in";
+  nameField.hidden = !isRegister;
+  nameInput.required = isRegister;
+
+  passwordInput.autocomplete = isRegister
+    ? "new-password"
+    : "current-password";
+
+  authDialog.showModal();
+}
+
+loginButton.addEventListener("click", async () => {
+  if (!auth.currentUser) {
+    openAuth("login");
+    return;
+  }
+
+  loginButton.disabled = true;
+
+  try {
+    await signOut(auth);
+    pageStatus.textContent = "You have logged out.";
+  } catch {
+    pageStatus.textContent = "Could not log out. Please try again.";
+  } finally {
+    loginButton.disabled = false;
+  }
+});
+
+registerButton.addEventListener("click", () => {
+  openAuth("register");
+});
+
+closeButton.addEventListener("click", () => {
+  if (!busy) {
+    authDialog.close();
+  }
+});
+
+authDialog.addEventListener("cancel", (event) => {
+  if (busy) {
+    event.preventDefault();
+  }
+});
+
+authDialog.addEventListener("close", () => {
+  authForm.reset();
+  authMessage.textContent = "";
+});
+
+function getErrorMessage(code) {
+  const messages = {
+    "auth/email-already-in-use":
+      "Could not create an account. Try logging in instead.",
+    "auth/invalid-email":
+      "Please enter a valid email address.",
+    "auth/weak-password":
+      "Please choose a stronger password.",
+    "auth/password-does-not-meet-requirements":
+      "Your password does not meet the password requirements.",
+    "auth/invalid-credential":
+      "Incorrect email or password.",
+    "auth/user-not-found":
+      "Incorrect email or password.",
+    "auth/wrong-password":
+      "Incorrect email or password.",
+    "auth/too-many-requests":
+      "Too many attempts. Please try again later.",
+    "auth/network-request-failed":
+      "Check your internet connection and try again.",
+    "auth/operation-not-allowed":
+      "Email/password sign-in is not enabled in Firebase."
+  };
+
+  return messages[code] || "Something went wrong. Please try again.";
+}
+
+authForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  if (busy) {
+    return;
+  }
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+  const name = nameInput.value.trim();
+  const isRegister = authMode === "register";
+
+  if (isRegister && !name) {
+    authMessage.textContent = "Please enter your name.";
+    nameInput.focus();
+    return;
+  }
+
+  busy = true;
+  submitButton.disabled = true;
+  closeButton.disabled = true;
+  authMessage.textContent = "Please wait…";
+
+  try {
+    if (isRegister) {
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      // The account already exists if saving the name fails.
+      try {
+        await updateProfile(result.user, {
+          displayName: name
+        });
+        await ensureProfile(result.user);
+        await updateDoc(doc(postDb,"users",result.user.uid),{name});
+
+        pageStatus.textContent = `Welcome, ${name}! Account created.`;
+      } catch {
+        pageStatus.textContent =
+          "Account created, but the profile could not be saved. Open My profile & contacts to retry.";
+      }
+    } else {
+      const result = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      pageStatus.textContent =
+        `Welcome back, ${result.user.displayName || "student"}!`;
+    }
+
+    authDialog.close();
+  } catch (error) {
+    authMessage.textContent = getErrorMessage(error.code);
+  } finally {
+    busy = false;
+    submitButton.disabled = false;
+    closeButton.disabled = false;
+  }
+});
+
+onAuthStateChanged(auth, (user) => {
+  loginButton.textContent = user ? "Log out" : "Log in";
+  registerButton.hidden = Boolean(user);
+  renderPosts();
+  if (user) ensureProfile(user).catch(showDatabaseError);
+});
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const postDb = getFirestore(app);
+
+const postDialog = document.getElementById("post-dialog");
+const postForm = document.getElementById("post-form");
+const postMessage = document.getElementById("post-message");
+const postSubmit = document.getElementById("post-submit");
+const postClose = document.getElementById("post-close");
+
+let postSaving = false;
+let editingPostId = null;
+document.getElementById("create-button").addEventListener("click", () => {
+  if (!auth.currentUser) {
+    openAuth("login");
+    return;
+  }
+
+editingPostId = null;
+postForm.reset();
+postMessage.textContent = "";
+document.getElementById("post-title").textContent =
+  "Create a study opportunity";
+postSubmit.textContent = "Publish post";
+postDialog.showModal();
+});
+
+postClose.addEventListener("click", () => {
+  if (!postSaving) postDialog.close();
+});
+
+postDialog.addEventListener("cancel", (event) => {
+  if (postSaving) event.preventDefault();
+});
+
+postForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  if (postSaving) return;
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    postMessage.textContent = "Please log in before publishing.";
+    return;
+  }
+
+  const title = document.getElementById("post-name").value.trim();
+  const description = document.getElementById("post-description").value.trim();
+  const location = document.getElementById("post-location").value.trim();
+
+  if (!title || !description || !location) {
+    postMessage.textContent = "Please complete all text fields.";
+    return;
+  }
+
+  postSaving = true;
+  postSubmit.disabled = true;
+  postClose.disabled = true;
+  postMessage.textContent = "Saving your post…";
+
+  try {
+    const postData = {
+  title,
+  subject: document.getElementById("post-subject").value,
+  type: document.getElementById("post-type").value,
+  description,
+  location,
+  capacity: Number(document.getElementById("post-capacity").value)
+};
+
+if (editingPostId) {
+  await updateDoc(doc(postDb, "posts", editingPostId), postData);
+} else {
+  await addDoc(collection(postDb, "posts"), {
+    ...postData,
+    ownerId: user.uid,
+    createdAt: serverTimestamp()
+  });
+}
+
+    postDialog.close();
+    document.getElementById("status").textContent =
+      "Your post has been saved successfully!";
+    postForm.reset();
+  } catch (error) {
+    console.error("Post creation failed:", error);
+
+    postMessage.textContent = error.code === "permission-denied"
+      ? "Permission denied. Check the published Firestore rules."
+      : "Could not save your post. Check your internet connection and try again.";
+  } finally {
+    postSaving = false;
+    postSubmit.disabled = false;
+    postClose.disabled = false;
+  }
+});
+import {
+  onSnapshot,
+  query,
+  orderBy,
+  limit
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const livePostsQuery = query(
+  collection(postDb, "posts"),
+  orderBy("createdAt", "desc"),
+  limit(100)
+);
+
+window.studyConnectUserId = () => auth.currentUser?.uid ?? null;
+posts.splice(0, posts.length);
+renderPosts();
+
+document.querySelector(".demo-notice")?.remove();
+document.getElementById("status").textContent = "Loading posts…";
+
+onSnapshot(livePostsQuery, (snapshot) => {
+  const savedPosts = snapshot.docs.map((document) => ({
+    ...document.data(),
+    id: document.id
+  }));
+
+  posts.splice(0, posts.length, ...savedPosts);
+  renderPosts();
+}, (error) => {
+  console.error("Loading posts failed:", error);
+  document.getElementById("status").textContent =
+    "Could not load posts. Please refresh the page.";
+});
+import {
+  doc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+window.studyConnectUserId = () => auth.currentUser?.uid ?? null;
+
+window.studyConnectDeletePost = async (post) => {
+  const user = auth.currentUser;
+
+  if (!user || user.uid !== post.ownerId) {
+    throw new Error("Only the author can delete this post.");
+  }
+
+  await deleteDoc(doc(postDb, "posts", post.id));
+};
+import {
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+window.studyConnectEditPost = (post) => {
+  if (!auth.currentUser || auth.currentUser.uid !== post.ownerId) {
+    return;
+  }
+
+  editingPostId = post.id;
+  postForm.reset();
+
+  document.getElementById("post-name").value = post.title;
+  document.getElementById("post-subject").value = post.subject;
+  document.getElementById("post-type").value = post.type;
+  document.getElementById("post-description").value = post.description;
+  document.getElementById("post-location").value = post.location;
+  document.getElementById("post-capacity").value = post.capacity;
+
+  document.getElementById("post-title").textContent =
+    "Edit your study opportunity";
+  postSubmit.textContent = "Save changes";
+  postMessage.textContent = "";
+
+  postDialog.showModal();
+};
+import {
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+window.studyConnectApply = async (post) => {
+  const user = auth.currentUser;
+
+  if (!user) {
+    throw new Error("Please log in to apply.");
+  }
+
+  if (user.uid === post.ownerId) {
+    throw new Error("You are already the organizer.");
+  }
+
+  const applicationRef = doc(
+    postDb,
+    "applications",
+    `${post.id}_${user.uid}`
+  );
+
+  const existingApplication = await getDoc(applicationRef);
+  const legacyApplication = await getDoc(doc(postDb, "posts", post.id, "applications", user.uid));
+
+  if (existingApplication.exists() || legacyApplication.exists()) {
+    return "You have already applied to this group.";
+  }
+
+  await setDoc(applicationRef, {
+    postId: post.id,
+    ownerId: post.ownerId,
+    userId: user.uid,
+    displayName: (user.displayName || "Student").slice(0, 60),
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+
+  return "Application sent! Waiting for the organizer.";
+};
+
+// Seven entity collections: users, subjects, posts, applications, messages,
+// reports and privateContacts. Old nested applications remain readable.
+import { getDocs, where } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+function showDatabaseError(error) {
+  pageStatus.textContent = error.code === "permission-denied"
+    ? "Access denied. Publish the supplied Firestore rules first."
+    : `Could not save or load data: ${error.message}`;
+}
+async function ensureProfile(user) {
+  const ref = doc(postDb, "users", user.uid);
+  const saved = await getDoc(ref);
+  if (!saved.exists()) await setDoc(ref, {
+    name: (user.displayName || "Student").slice(0,60), major: "", role: "student",
+    createdAt: serverTimestamp()
+  });
+}
+function action(parent, label, handler) {
+  const button = createTextElement("button", label);
+  button.type = "button";
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    try { await handler(); } catch (error) {
+      let message = parent.querySelector(".feature-error");
+      if (!message) { message = createTextElement("p", "", "feature-error"); message.setAttribute("role","alert"); parent.append(message); }
+      message.textContent = error.code === "permission-denied" ? "Access denied. Check the Firestore rules and your membership." : error.message;
+    } finally { button.disabled = false; }
+  });
+  parent.append(button);
+  return button;
+}
+const profileButton = createTextElement("button", "My profile & contacts");
+profileButton.type = "button";
+document.querySelector("header nav").append(profileButton);
+profileButton.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) { openAuth("login"); return; }
+  profileButton.disabled = true;
+  try {
+    await ensureProfile(user);
+    const [profile, contacts] = await Promise.all([
+      getDoc(doc(postDb,"users",user.uid)), getDoc(doc(postDb,"privateContacts",user.uid))
+    ]);
+    const dialog = document.createElement("dialog");
+    dialog.append(createTextElement("h2", "My profile & private contacts"));
+    const form = document.createElement("form");
+    const fields = {};
+    for (const [key,label,value,max] of [
+      ["name","Name",profile.data().name,60], ["major","Major",profile.data().major,100],
+      ["telegram","Telegram",contacts.data()?.telegram || "",100],
+      ["whatsapp","WhatsApp",contacts.data()?.whatsapp || "",100]
+    ]) {
+      const input = document.createElement("input"); input.value = value; input.maxLength = max;
+      input.id = `profile-${key}`; input.required = key === "name";
+      const labelNode = createTextElement("label",label); labelNode.htmlFor = input.id;
+      form.append(labelNode,input); fields[key] = input;
+    }
+    const preference = document.createElement("input"); preference.type="checkbox";
+    preference.checked=contacts.data()?.shareWithGroup || false;
+    const prefLabel = createTextElement("label","I prefer to share my contacts with group members");
+    prefLabel.prepend(preference); form.append(prefLabel);
+    const result = createTextElement("p", ""); result.setAttribute("role","status"); form.append(result);
+    const save = createTextElement("button","Save profile & contacts"); save.type="submit"; form.append(save);
+    form.addEventListener("submit",async event => {
+      event.preventDefault(); save.disabled=true;
+      try {
+        const name=fields.name.value.trim(); if (!name) throw new Error("Enter your name.");
+        await updateDoc(doc(postDb,"users",user.uid),{name,major:fields.major.value.trim()});
+        await updateProfile(user,{displayName:name});
+        await setDoc(doc(postDb,"privateContacts",user.uid),{
+          telegram:fields.telegram.value.trim(),whatsapp:fields.whatsapp.value.trim(),
+          shareWithGroup:preference.checked,updatedAt:serverTimestamp()
+        }); result.textContent="Profile and contacts saved.";
+      } catch(error) {result.textContent=error.message;} finally {save.disabled=false;}
+    });
+    dialog.append(form); action(dialog,"Close",()=>dialog.close());
+    dialog.addEventListener("close",()=>dialog.remove()); document.body.append(dialog); dialog.showModal();
+  } catch(error) {showDatabaseError(error);} finally {profileButton.disabled=false;}
+});
+let subjectUnsubscribe;
+onAuthStateChanged(auth, user => {
+  subjectUnsubscribe?.();
+  if (!user) return;
+  subjectUnsubscribe=onSnapshot(collection(postDb,"subjects"),snapshot => {
+    const names=[...new Set(snapshot.docs.map(d=>d.data().name).filter(Boolean))].sort();
+    if (!names.length) return;
+    for (const [id,placeholder] of [["subject-filter","All subjects"],["post-subject","Choose a subject"]]) {
+      const select=document.getElementById(id),previous=select.value; select.replaceChildren(new Option(placeholder,""));
+      names.forEach(name=>select.add(new Option(name,name))); select.value=previous;
+    }
+  },showDatabaseError);
+});
+window.studyConnectEnhanceDetails = (post,dialog) => {
+  const panel=document.createElement("section"); panel.className="group-tools";
+  dialog.append(panel);
+  const user=auth.currentUser;
+  if (!user) {panel.append(createTextElement("p","Log in to use group chat and reporting."));return;}
+  let unsubscribe;
+  dialog.addEventListener("close",()=>unsubscribe?.());
+  const own=post.ownerId===user.uid;
+  if (own) action(panel,"Manage applications",async()=>{
+    const [current,legacy]=await Promise.all([
+      getDocs(query(collection(postDb,"applications"),where("postId","==",post.id))),
+      getDocs(collection(postDb,"posts",post.id,"applications"))
+    ]);
+    panel.querySelector(".application-list")?.remove();
+    const list=document.createElement("div");list.className="application-list";panel.append(list);
+    const rows=new Map(legacy.docs.map(d=>[d.id,{...d.data(),userId:d.id,legacy:true}]));
+    current.docs.forEach(d=>rows.set(d.data().userId,{...d.data(),legacy:false}));
+    if(!rows.size) list.append(createTextElement("p","No applications yet."));
+    for(const application of rows.values()) {
+      const row=document.createElement("div");const state=createTextElement("p",`${application.displayName}: ${application.status}`);row.append(state);list.append(row);
+      for(const decision of ["accepted","rejected"]) action(row,decision==="accepted"?"Accept":"Reject",async()=>{
+        const ref=doc(postDb,"applications",`${post.id}_${application.userId}`);
+        if(application.legacy) {
+          await setDoc(ref,{postId:post.id,ownerId:user.uid,userId:application.userId,
+            displayName:application.displayName,status:decision,createdAt:application.createdAt});
+          application.legacy=false;
+        } else await updateDoc(ref,{status:decision});
+        // Keep old applications consistent for older copies of the website.
+        if (rows.get(application.userId)?.createdAt && legacy.docs.some(d=>d.id===application.userId))
+          await updateDoc(doc(postDb,"posts",post.id,"applications",application.userId),{status:decision});
+        application.status=decision;state.textContent=`${application.displayName}: ${decision}`;
+      });
+    }
+  });
+  action(panel,"Open group chat",async()=>{
+    unsubscribe?.(); panel.querySelector(".chat-panel")?.remove();
+    const chat=document.createElement("div");chat.className="chat-panel";panel.append(chat);
+    chat.append(createTextElement("h3","Group chat"));const messages=document.createElement("div");chat.append(messages);
+    const form=document.createElement("form"),input=document.createElement("input");input.maxLength=2000;input.required=true;input.placeholder="Write a message";
+    const send=createTextElement("button","Send");send.type="submit";form.append(input,send);chat.append(form);
+    const errorNode=createTextElement("p","");errorNode.setAttribute("role","status");chat.append(errorNode);
+    unsubscribe=onSnapshot(query(collection(postDb,"messages"),where("postId","==",post.id)),snapshot=>{
+      const sorted=snapshot.docs.map(d=>d.data()).sort((a,b)=>(a.createdAt?.toMillis()||0)-(b.createdAt?.toMillis()||0));
+      messages.replaceChildren(...sorted.map(m=>createTextElement("p",`${m.displayName}: ${m.text}`)));
+    },error=>{errorNode.textContent="Chat is available to the organizer and accepted participants. "+error.message;});
+    form.addEventListener("submit",async event=>{
+      event.preventDefault();const text=input.value.trim();if(!text)return;send.disabled=true;
+      try{await addDoc(collection(postDb,"messages"),{postId:post.id,senderId:user.uid,displayName:(auth.currentUser?.displayName||"Student").slice(0,60),text,createdAt:serverTimestamp()});input.value="";errorNode.textContent="";}
+      catch(error){errorNode.textContent=error.message;}finally{send.disabled=false;}
+    });
+
+  });
+  action(panel,"Report post",async()=>{
+    const reason=window.prompt("Reason for reporting this post (max 500 characters):");
+    if(!reason?.trim())return;
+    if(reason.trim().length>500)throw new Error("Use at most 500 characters.");
+    await addDoc(collection(postDb,"reports"),{postId:post.id,reporterId:user.uid,reason:reason.trim(),status:"pending",createdAt:serverTimestamp()});
+    panel.append(createTextElement("p","Report saved."));
+  });
+};
+
+</script>
+</body>
+</html>
