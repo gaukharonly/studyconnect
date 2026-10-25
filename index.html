@@ -20,6 +20,11 @@
     <section class="hero">
       <p class="eyebrow">LEARN BETTER TOGETHER</p>
       <h1>Find your study people.</h1>
+      <img
+  class="hero-image"
+  src="images/study-together (7).webp"
+  alt="University students studying together"
+/>
       <p>
         Meet study partners, build project teams
         and prepare for exams together.
@@ -40,7 +45,23 @@
 
       <div class="filters">
         <div>
-          <label for="search">Search</label>
+          <label for="search">
+  <svg
+    class="ui-icon"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    aria-hidden="true"
+  >
+    <circle cx="11" cy="11" r="7"
+      fill="none" stroke="currentColor" stroke-width="2"/>
+    <path d="m16 16 4 4"
+      fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round"/>
+  </svg>
+  Search
+</label>
           <input
             type="search"
             id="search"
@@ -77,8 +98,17 @@
   Show only my posts
 </label>
       <div id="posts" class="posts"></div>
-      <p id="empty-state" hidden>No matching posts found.</p>
-      <p id="status" role="status"></p>
+
+<p id="empty-state" hidden>
+  No matching posts found.
+</p>
+
+<p id="status" role="status" aria-live="polite">
+  <span class="loading-dots" aria-hidden="true">
+    <span></span><span></span><span></span>
+  </span>
+  Loading study opportunities...
+</p>
     </section>
   </main>
 
@@ -144,6 +174,7 @@
     >
 
     <p id="post-message" role="status"></p>
+   
 
     <button id="post-submit" type="submit">Publish post</button>
     <button id="post-close" type="button">Cancel</button>
@@ -360,13 +391,11 @@ authForm.addEventListener("submit", async (event) => {
         await updateProfile(result.user, {
           displayName: name
         });
-        await ensureProfile(result.user);
-        await updateDoc(doc(postDb,"users",result.user.uid),{name});
 
         pageStatus.textContent = `Welcome, ${name}! Account created.`;
       } catch {
         pageStatus.textContent =
-          "Account created, but the profile could not be saved. Open My profile & contacts to retry.";
+          "Account created, but your name could not be saved.";
       }
     } else {
       const result = await signInWithEmailAndPassword(
@@ -392,8 +421,6 @@ authForm.addEventListener("submit", async (event) => {
 onAuthStateChanged(auth, (user) => {
   loginButton.textContent = user ? "Log out" : "Log in";
   registerButton.hidden = Boolean(user);
-  renderPosts();
-  if (user) ensureProfile(user).catch(showDatabaseError);
 });
 import {
   getFirestore,
@@ -480,9 +507,9 @@ if (editingPostId) {
     createdAt: serverTimestamp()
   });
 }
-
+  
     postDialog.close();
-    document.getElementById("status").textContent =
+    document.getElementById("").textContent =
       "Your post has been saved successfully!";
     postForm.reset();
   } catch (error) {
@@ -510,12 +537,14 @@ const livePostsQuery = query(
   limit(100)
 );
 
-window.studyConnectUserId = () => auth.currentUser?.uid ?? null;
 posts.splice(0, posts.length);
 renderPosts();
 
 document.querySelector(".demo-notice")?.remove();
-document.getElementById("status").textContent = "Loading posts…";
+document.getElementById("status").innerHTML =
+  '<span class="loading-dots" aria-hidden="true">' +
+  '<span></span><span></span><span></span>' +
+  '</span> Loading study opportunities...';
 
 onSnapshot(livePostsQuery, (snapshot) => {
   const savedPosts = snapshot.docs.map((document) => ({
@@ -546,9 +575,6 @@ window.studyConnectDeletePost = async (post) => {
 
   await deleteDoc(doc(postDb, "posts", post.id));
 };
-import {
-  updateDoc
-} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 window.studyConnectEditPost = (post) => {
   if (!auth.currentUser || auth.currentUser.uid !== post.ownerId) {
@@ -574,9 +600,10 @@ window.studyConnectEditPost = (post) => {
 };
 import {
   getDoc,
-  setDoc
+  setDoc,
+  getDocs,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-
 window.studyConnectApply = async (post) => {
   const user = auth.currentUser;
 
@@ -590,20 +617,19 @@ window.studyConnectApply = async (post) => {
 
   const applicationRef = doc(
     postDb,
+    "posts",
+    post.id,
     "applications",
-    `${post.id}_${user.uid}`
+    user.uid
   );
 
   const existingApplication = await getDoc(applicationRef);
-  const legacyApplication = await getDoc(doc(postDb, "posts", post.id, "applications", user.uid));
 
-  if (existingApplication.exists() || legacyApplication.exists()) {
+  if (existingApplication.exists()) {
     return "You have already applied to this group.";
   }
 
   await setDoc(applicationRef, {
-    postId: post.id,
-    ownerId: post.ownerId,
     userId: user.uid,
     displayName: (user.displayName || "Student").slice(0, 60),
     status: "pending",
@@ -612,159 +638,69 @@ window.studyConnectApply = async (post) => {
 
   return "Application sent! Waiting for the organizer.";
 };
-
-// Seven entity collections: users, subjects, posts, applications, messages,
-// reports and privateContacts. Old nested applications remain readable.
-import { getDocs, where } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-function showDatabaseError(error) {
-  pageStatus.textContent = error.code === "permission-denied"
-    ? "Access denied. Publish the supplied Firestore rules first."
-    : `Could not save or load data: ${error.message}`;
-}
-async function ensureProfile(user) {
-  const ref = doc(postDb, "users", user.uid);
-  const saved = await getDoc(ref);
-  if (!saved.exists()) await setDoc(ref, {
-    name: (user.displayName || "Student").slice(0,60), major: "", role: "student",
-    createdAt: serverTimestamp()
-  });
-}
-function action(parent, label, handler) {
-  const button = createTextElement("button", label);
-  button.type = "button";
-  button.addEventListener("click", async () => {
-    button.disabled = true;
-    try { await handler(); } catch (error) {
-      let message = parent.querySelector(".feature-error");
-      if (!message) { message = createTextElement("p", "", "feature-error"); message.setAttribute("role","alert"); parent.append(message); }
-      message.textContent = error.code === "permission-denied" ? "Access denied. Check the Firestore rules and your membership." : error.message;
-    } finally { button.disabled = false; }
-  });
-  parent.append(button);
-  return button;
-}
-const profileButton = createTextElement("button", "My profile & contacts");
-profileButton.type = "button";
-document.querySelector("header nav").append(profileButton);
-profileButton.addEventListener("click", async () => {
+window.studyConnectManageApplications = async (post, container) => {
   const user = auth.currentUser;
-  if (!user) { openAuth("login"); return; }
-  profileButton.disabled = true;
-  try {
-    await ensureProfile(user);
-    const [profile, contacts] = await Promise.all([
-      getDoc(doc(postDb,"users",user.uid)), getDoc(doc(postDb,"privateContacts",user.uid))
-    ]);
-    const dialog = document.createElement("dialog");
-    dialog.append(createTextElement("h2", "My profile & private contacts"));
-    const form = document.createElement("form");
-    const fields = {};
-    for (const [key,label,value,max] of [
-      ["name","Name",profile.data().name,60], ["major","Major",profile.data().major,100],
-      ["telegram","Telegram",contacts.data()?.telegram || "",100],
-      ["whatsapp","WhatsApp",contacts.data()?.whatsapp || "",100]
-    ]) {
-      const input = document.createElement("input"); input.value = value; input.maxLength = max;
-      input.id = `profile-${key}`; input.required = key === "name";
-      const labelNode = createTextElement("label",label); labelNode.htmlFor = input.id;
-      form.append(labelNode,input); fields[key] = input;
-    }
-    const preference = document.createElement("input"); preference.type="checkbox";
-    preference.checked=contacts.data()?.shareWithGroup || false;
-    const prefLabel = createTextElement("label","I prefer to share my contacts with group members");
-    prefLabel.prepend(preference); form.append(prefLabel);
-    const result = createTextElement("p", ""); result.setAttribute("role","status"); form.append(result);
-    const save = createTextElement("button","Save profile & contacts"); save.type="submit"; form.append(save);
-    form.addEventListener("submit",async event => {
-      event.preventDefault(); save.disabled=true;
-      try {
-        const name=fields.name.value.trim(); if (!name) throw new Error("Enter your name.");
-        await updateDoc(doc(postDb,"users",user.uid),{name,major:fields.major.value.trim()});
-        await updateProfile(user,{displayName:name});
-        await setDoc(doc(postDb,"privateContacts",user.uid),{
-          telegram:fields.telegram.value.trim(),whatsapp:fields.whatsapp.value.trim(),
-          shareWithGroup:preference.checked,updatedAt:serverTimestamp()
-        }); result.textContent="Profile and contacts saved.";
-      } catch(error) {result.textContent=error.message;} finally {save.disabled=false;}
-    });
-    dialog.append(form); action(dialog,"Close",()=>dialog.close());
-    dialog.addEventListener("close",()=>dialog.remove()); document.body.append(dialog); dialog.showModal();
-  } catch(error) {showDatabaseError(error);} finally {profileButton.disabled=false;}
-});
-let subjectUnsubscribe;
-onAuthStateChanged(auth, user => {
-  subjectUnsubscribe?.();
-  if (!user) return;
-  subjectUnsubscribe=onSnapshot(collection(postDb,"subjects"),snapshot => {
-    const names=[...new Set(snapshot.docs.map(d=>d.data().name).filter(Boolean))].sort();
-    if (!names.length) return;
-    for (const [id,placeholder] of [["subject-filter","All subjects"],["post-subject","Choose a subject"]]) {
-      const select=document.getElementById(id),previous=select.value; select.replaceChildren(new Option(placeholder,""));
-      names.forEach(name=>select.add(new Option(name,name))); select.value=previous;
-    }
-  },showDatabaseError);
-});
-window.studyConnectEnhanceDetails = (post,dialog) => {
-  const panel=document.createElement("section"); panel.className="group-tools";
-  dialog.append(panel);
-  const user=auth.currentUser;
-  if (!user) {panel.append(createTextElement("p","Log in to use group chat and reporting."));return;}
-  let unsubscribe;
-  dialog.addEventListener("close",()=>unsubscribe?.());
-  const own=post.ownerId===user.uid;
-  if (own) action(panel,"Manage applications",async()=>{
-    const [current,legacy]=await Promise.all([
-      getDocs(query(collection(postDb,"applications"),where("postId","==",post.id))),
-      getDocs(collection(postDb,"posts",post.id,"applications"))
-    ]);
-    panel.querySelector(".application-list")?.remove();
-    const list=document.createElement("div");list.className="application-list";panel.append(list);
-    const rows=new Map(legacy.docs.map(d=>[d.id,{...d.data(),userId:d.id,legacy:true}]));
-    current.docs.forEach(d=>rows.set(d.data().userId,{...d.data(),legacy:false}));
-    if(!rows.size) list.append(createTextElement("p","No applications yet."));
-    for(const application of rows.values()) {
-      const row=document.createElement("div");const state=createTextElement("p",`${application.displayName}: ${application.status}`);row.append(state);list.append(row);
-      for(const decision of ["accepted","rejected"]) action(row,decision==="accepted"?"Accept":"Reject",async()=>{
-        const ref=doc(postDb,"applications",`${post.id}_${application.userId}`);
-        if(application.legacy) {
-          await setDoc(ref,{postId:post.id,ownerId:user.uid,userId:application.userId,
-            displayName:application.displayName,status:decision,createdAt:application.createdAt});
-          application.legacy=false;
-        } else await updateDoc(ref,{status:decision});
-        // Keep old applications consistent for older copies of the website.
-        if (rows.get(application.userId)?.createdAt && legacy.docs.some(d=>d.id===application.userId))
-          await updateDoc(doc(postDb,"posts",post.id,"applications",application.userId),{status:decision});
-        application.status=decision;state.textContent=`${application.displayName}: ${decision}`;
-      });
-    }
-  });
-  action(panel,"Open group chat",async()=>{
-    unsubscribe?.(); panel.querySelector(".chat-panel")?.remove();
-    const chat=document.createElement("div");chat.className="chat-panel";panel.append(chat);
-    chat.append(createTextElement("h3","Group chat"));const messages=document.createElement("div");chat.append(messages);
-    const form=document.createElement("form"),input=document.createElement("input");input.maxLength=2000;input.required=true;input.placeholder="Write a message";
-    const send=createTextElement("button","Send");send.type="submit";form.append(input,send);chat.append(form);
-    const errorNode=createTextElement("p","");errorNode.setAttribute("role","status");chat.append(errorNode);
-    unsubscribe=onSnapshot(query(collection(postDb,"messages"),where("postId","==",post.id)),snapshot=>{
-      const sorted=snapshot.docs.map(d=>d.data()).sort((a,b)=>(a.createdAt?.toMillis()||0)-(b.createdAt?.toMillis()||0));
-      messages.replaceChildren(...sorted.map(m=>createTextElement("p",`${m.displayName}: ${m.text}`)));
-    },error=>{errorNode.textContent="Chat is available to the organizer and accepted participants. "+error.message;});
-    form.addEventListener("submit",async event=>{
-      event.preventDefault();const text=input.value.trim();if(!text)return;send.disabled=true;
-      try{await addDoc(collection(postDb,"messages"),{postId:post.id,senderId:user.uid,displayName:(auth.currentUser?.displayName||"Student").slice(0,60),text,createdAt:serverTimestamp()});input.value="";errorNode.textContent="";}
-      catch(error){errorNode.textContent=error.message;}finally{send.disabled=false;}
-    });
 
-  });
-  action(panel,"Report post",async()=>{
-    const reason=window.prompt("Reason for reporting this post (max 500 characters):");
-    if(!reason?.trim())return;
-    if(reason.trim().length>500)throw new Error("Use at most 500 characters.");
-    await addDoc(collection(postDb,"reports"),{postId:post.id,reporterId:user.uid,reason:reason.trim(),status:"pending",createdAt:serverTimestamp()});
-    panel.append(createTextElement("p","Report saved."));
+  if (!user || user.uid !== post.ownerId) {
+    throw new Error("Only the organizer can manage applications.");
+  }
+
+  const applicationsRef = collection(
+    postDb, "posts", post.id, "applications"
+  );
+
+  const snapshot = await getDocs(applicationsRef);
+
+  const heading = document.createElement("h3");
+  heading.textContent = "Applications";
+  container.append(heading);
+
+  if (snapshot.empty) {
+    container.append(
+      document.createTextNode("No applications yet.")
+    );
+    return;
+  }
+
+  snapshot.forEach((applicationDoc) => {
+    const application = applicationDoc.data();
+    const row = document.createElement("div");
+
+    const name = document.createElement("p");
+    name.textContent =
+      `${application.displayName} — ${application.status}`;
+    row.append(name);
+
+    if (application.status === "pending") {
+      for (const decision of ["accepted", "rejected"]) {
+        const button = document.createElement("button");
+        button.textContent =
+          decision === "accepted" ? "Accept" : "Reject";
+
+        button.addEventListener("click", async () => {
+          button.disabled = true;
+
+          try {
+            await updateDoc(applicationDoc.ref, {
+              status: decision
+            });
+
+            name.textContent =
+              `${application.displayName} — ${decision}`;
+          } catch (error) {
+            console.error(error);
+            alert("Could not update the application.");
+            button.disabled = false;
+          }
+        });
+
+        row.append(button);
+      }
+    }
+
+    container.append(row);
   });
 };
-
 </script>
 </body>
 </html>
