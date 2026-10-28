@@ -20,9 +20,8 @@
     <section class="hero">
       <p class="eyebrow">LEARN BETTER TOGETHER</p>
       <h1>Find your study people.</h1>
-      <img
-  class="hero-image"
-<img src="study-together.webp" alt="StudyConnect logo" style="width: 100%; height: auto; object-fit: contain;">      <p>
+      <img class="hero-image" src="study-together.webp" alt="Students studying together" style="width: 100%; height: auto; object-fit: contain;">
+      <p>
         Meet study partners, build project teams
         and prepare for exams together.
       </p>
@@ -68,7 +67,7 @@
 
         <div>
           <label for="subject-filter">Subject</label>
-          <select id="subject" name="subject" required>
+          <select id="subject-filter" name="subject">
   <option value="">Choose a subject</option>
   <option value="Algorithms and Data Structures">Algorithms and Data Structures</option>
   <option value="Calculus 1">Calculus 1</option>
@@ -538,8 +537,7 @@ if (editingPostId) {
 }
   
     postDialog.close();
-    document.getElementById("").textContent =
-      "Your post has been saved successfully!";
+    pageStatus.textContent = "Your post has been saved successfully!";
     postForm.reset();
   } catch (error) {
     console.error("Post creation failed:", error);
