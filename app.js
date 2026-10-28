@@ -1,4 +1,3 @@
-// Example posts for the interface preview.
 const posts = [
   {
     id: 1,
@@ -64,8 +63,8 @@ const posts = [
 
 const postsContainer = document.getElementById("posts");
 const searchInput = document.getElementById("search");
-const subjectFilter = document.getElementById("subject-filter");
-const typeFilter = document.getElementById("type-filter");
+const subjectFilter = document.getElementById("subject") || document.getElementById("subject-filter");
+const typeFilter = document.getElementById("type") || document.getElementById("type-filter") || document.getElementById("post-type");
 const emptyState = document.getElementById("empty-state");
 const status = document.getElementById("status");
 
@@ -83,7 +82,6 @@ function createTextElement(tag, text, className) {
 
 function showDetails(post) {
   const dialog = document.createElement("dialog");
-  window.studyConnectEnhanceDetails?.(post, dialog);
   dialog.setAttribute("aria-labelledby", "detail-title");
 
   const title = createTextElement("h2", post.title);
@@ -129,6 +127,28 @@ dialog.append(editButton);
   deleteMessage.setAttribute("role", "status");
 
   let deleting = false;
+  const applicationsContainer = document.createElement("section");
+applicationsContainer.style.marginTop = "16px";
+
+const applicationsButton =
+  createTextElement("button", "View applications");
+
+applicationsButton.addEventListener("click", async () => {
+  applicationsContainer.replaceChildren();
+
+  try {
+    await window.studyConnectManageApplications(
+      post,
+      applicationsContainer
+    );
+  } catch (error) {
+    console.error(error);
+    applicationsContainer.textContent =
+      "Could not load applications.";
+  }
+});
+
+dialog.append(applicationsButton, applicationsContainer);
 
   dialog.addEventListener("cancel", (event) => {
     if (deleting) event.preventDefault();
@@ -216,8 +236,8 @@ function renderPosts() {
       `${post.title} ${post.subject} ${post.description}`.toLowerCase();
 
     const matchesSearch = searchableText.includes(query);
-    const matchesSubject =
-      !subjectFilter.value || post.subject === subjectFilter.value;
+    const matchesSubject = 
+  !document.getElementById("subject").value || post.subject === document.getElementById("subject").value;
     const matchesType =
       !typeFilter.value || post.type === typeFilter.value;
 
