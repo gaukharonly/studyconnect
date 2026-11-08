@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Study Environment | StudyConnect</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 16px 32px; font-family: Arial, sans-serif; background: #f4f6fb; color: #26334a; }
+    .container { max-width: 850px; margin: auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 9px; background: #3558df; color: #fff; text-decoration: none; font-weight: 600; font-size: 13px; box-shadow: 0 3px 9px #3558df25; }
+    .back-link:hover { background: #2948c4; }
+    h1 { text-align: center; color: #243b63; margin: 28px 0 8px; }
+    .description { text-align: center; color: #68758a; line-height: 1.6; }
+    .simulation { text-align: center; color: #6b5bb5; font-size: 12px; font-weight: bold; margin: 18px; letter-spacing: .3px; }
+    .location { background: #fff; border-radius: 16px; padding: 22px; margin-top: 20px; box-shadow: 0 4px 15px #0000000d; }
+    .location-picker { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 22px 0 8px; }
+    .location-picker label { font-weight: 700; color: #344766; }
+    select { min-width: min(100%, 270px); padding: 10px 12px; border: 1px solid #d5ddeb; border-radius: 9px; background: #fff; color: #26334a; font: inherit; }
+    .cards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; margin-top: 20px; }
+    .card { background: #f7f9fd; border: 1px solid #edf0f6; border-radius: 14px; padding: 22px; text-align: center; }
+    .card h3 { margin: 0 0 12px; color: #68758a; font-size: 15px; }
+    .value { font-size: 36px; font-weight: bold; color: #263e68; }
+    .status { display: inline-block; padding: 9px 16px; border-radius: 20px; background: #d9f5e4; color: #167344; font-weight: bold; }
+    .status.warning { background: #fff0d6; color: #8a5700; }
+    button { margin-top: 22px; padding: 11px 19px; border: 0; border-radius: 10px; background: #344f83; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
+    button:hover { background: #243b63; }
+    .note { margin-top: 24px; font-size: 12px; color: #778195; text-align: center; line-height: 1.5; }
+    @media(max-width:520px) { .cards { grid-template-columns: 1fr; } .location { padding: 17px; } .value { font-size: 32px; } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior: auto !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a class="back-link" href="index.html" aria-label="Back to StudyConnect home">← Back to StudyConnect</a>
+    <h1>Smart Study Environment</h1>
+    <p class="description">Check example environmental conditions in university study areas and choose a comfortable place to study.</p>
+    <div class="simulation">JAVASCRIPT SIMULATION — NOT REAL SENSOR DATA</div>
+
+    <div class="location-picker">
+      <label for="study-area">Choose study area:</label>
+      <select id="study-area">
+        <option value="library">University Library</option>
+        <option value="coworking">Atameken / Coworking Zone</option>
+        <option value="openspace">Open Space</option>
+        <option value="cafeteria">Cafeteria</option>
+        <option value="coffee">Coffee Shops</option>
+      </select>
+    </div>
+
+    <section class="location" aria-labelledby="area-title">
+      <h2 id="area-title">📚 University Library</h2>
+      <p id="zone-name">Study area: Library Zone 1</p>
+      <p id="updated" aria-live="polite">Example readings</p>
+      <div class="cards">
+        <div class="card"><h3>🌡️ Temperature</h3><div class="value" id="temperature">22°C</div></div>
+        <div class="card"><h3>💧 Humidity</h3><div class="value" id="humidity">45%</div></div>
+      </div>
+      <h3>Environment Status</h3>
+      <div class="status" id="status" role="status" aria-live="polite">Comfortable</div><br>
+      <button type="button" id="update-button">Update Readings</button>
+    </section>
+    <p class="note">This demonstration uses randomly generated JavaScript values for each selected location. No physical sensors, ESP32 device or Firebase connection are active on this page.</p>
+  </div>
+  <script>
+    const studyAreas = {
+      library: { title: "📚 University Library", zone: "Library Zone 1" },
+      coworking: { title: "💻 Atameken / Coworking Zone", zone: "Coworking Zone" },
+      openspace: { title: "🪑 Open Space", zone: "Open Space Study Area" },
+      cafeteria: { title: "☕ Cafeteria", zone: "Cafeteria Study Area" },
+      coffee: { title: "☕ Coffee Shops", zone: "Coffee Shop Study Area" }
+    };
+
+    const areaSelect = document.getElementById("study-area");
+    const areaTitle = document.getElementById("area-title");
+    const zoneName = document.getElementById("zone-name");
+
+    function showSelectedArea() {
+      const area = studyAreas[areaSelect.value];
+      areaTitle.textContent = area.title;
+      zoneName.textContent = "Study area: " + area.zone;
+      document.getElementById("updated").textContent = "Example readings";
+      document.getElementById("temperature").textContent = "22°C";
+      document.getElementById("humidity").textContent = "45%";
+      const status = document.getElementById("status");
+      status.textContent = "Comfortable";
+      status.classList.remove("warning");
+    }
+
+    function updateReadings() {
+      const temperature = Math.floor(Math.random() * 11) + 18;
+      const humidity = Math.floor(Math.random() * 41) + 30;
+      document.getElementById("temperature").textContent = temperature + "°C";
+      document.getElementById("humidity").textContent = humidity + "%";
+      const comfortable = temperature >= 20 && temperature <= 25 && humidity >= 30 && humidity <= 60;
+      const status = document.getElementById("status");
+      status.textContent = comfortable ? "Comfortable" : "Needs Attention";
+      status.classList.toggle("warning", !comfortable);
+      document.getElementById("updated").textContent = "Last updated: " + new Date().toLocaleTimeString();
+    }
+
+    areaSelect.addEventListener("change", showSelectedArea);
+    document.getElementById("update-button").addEventListener("click", updateReadings);
+  </script>
+</body>
+</html>

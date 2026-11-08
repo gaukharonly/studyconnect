@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyConnect Restore Test</title>
+</head>
+<body>
+  <h1>StudyConnect Restore Test</h1>
+  <p>Select studyconnect-backup.json and restore posts to the test database.</p>
+
+  <input type="file" id="backupFile" accept=".json">
+  <button id="restoreButton">Restore posts</button>
+  <pre id="result">Waiting for backup file...</pre>
+
+  <script type="module">
+    import { initializeApp } from
+      "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import { getFirestore, doc, setDoc } from
+      "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyApBAg-LmbdftGjfsJhQJFLDKe0IkT5D7U",
+      authDomain: "studyconnect-test.firebaseapp.com",
+      projectId: "studyconnect-test",
+      appId: "1:1086602241072:web:05e02a17253255505739f5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.getElementById("restoreButton").addEventListener("click", async () => {
+      const file = document.getElementById("backupFile").files[0];
+      const result = document.getElementById("result");
+
+      if (!file) {
+        result.textContent = "Please select the JSON backup file.";
+        return;
+      }
+
+      try {
+        const backup = JSON.parse(await file.text());
+        const posts = backup.collections?.posts;
+
+        if (!Array.isArray(posts) || posts.length === 0) {
+          throw new Error("No posts found in the backup.");
+        }
+
+        if (!confirm(`Import ${posts.length} posts into StudyConnect-Test?`)) {
+          return;
+        }
+
+        result.textContent = "Importing posts...";
+
+        for (const post of posts) {
+          if (!post.id || !post.data) {
+            throw new Error("Invalid post format in backup.");
+          }
+
+          await setDoc(doc(db, "posts", post.id), post.data);
+        }
+
+        result.textContent =
+          `Restore completed!\nPosts imported: ${posts.length}\n` +
+          "Project: studyconnect-test\n" +
+          "Now check Firestore → Data → posts.";
+      } catch (error) {
+        result.textContent = "Restore failed: " + error.message;
+      }
+    });
+  </script>
+</body>
+</html>

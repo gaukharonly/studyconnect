@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyConnect Backup</title>
+</head>
+<body>
+  <h1>StudyConnect Database Backup</h1>
+  <p>This page reads Firestore data and downloads a JSON backup.</p>
+  <button id="backupButton">Download backup</button>
+  <p id="status">Ready.</p>
+
+  <script type="module">
+    import { initializeApp } from
+      "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+    import {
+      getFirestore,
+      collection,
+      getDocs
+    } from
+      "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA637P9nM-MFpbxg8KFesN0irXMKc2-yPY",
+      authDomain: "studyconnect-d544f.firebaseapp.com",
+      projectId: "studyconnect-d544f",
+      storageBucket: "studyconnect-d544f.firebasestorage.app",
+      messagingSenderId: "229894822593",
+      appId: "1:229894822593:web:5900d3a4d971bb3f079240"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const button = document.getElementById("backupButton");
+    const status = document.getElementById("status");
+
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      status.textContent = "Reading database...";
+
+      try {
+        const postsSnapshot = await getDocs(collection(db, "posts"));
+        const backup = {
+          projectId: "studyconnect-d544f",
+          createdAt: new Date().toISOString(),
+          collections: {
+            posts: []
+          }
+        };
+
+       for (const postDoc of postsSnapshot.docs) {
+  const post = {
+    id: postDoc.id,
+    data: postDoc.data()
+  };
+
+  backup.collections.posts.push(post);
+}
+
+        const blob = new Blob(к
+          [JSON.stringify(backup, null, 2)],
+          { type: "application/json" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "studyconnect-backup.json";
+        link.click();
+        URL.revokeObjectURL(url);
+
+        status.textContent =
+          `Backup downloaded. Posts: ${backup.collections.posts.length}.`;
+      } catch (error) {
+        console.error(error);
+        status.textContent =
+          "Backup failed: " + error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
