@@ -318,6 +318,75 @@
   background: #f5f7ff;
 }
 
+
+/* StudyConnect administrator panel */
+#admin-button { margin-left: 8px; }
+#admin-dialog {
+  width: min(92vw, 880px); max-width: 880px; max-height: 86vh;
+  padding: 0; border: 0; border-radius: 20px; color: #19294d;
+  box-shadow: 0 24px 70px rgba(12, 30, 60, .28);
+}
+#admin-dialog::backdrop { background: rgba(13, 28, 52, .58); }
+.admin-panel { max-height: 86vh; overflow-y: auto; padding: 26px; background: #fff; }
+.admin-panel-header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding-bottom:18px; border-bottom:1px solid #e7ebf3; }
+.admin-kicker { color:#4168df; font-size:11px; font-weight:800; letter-spacing:1.3px; }
+.admin-panel-header h2 { margin:6px 0; color:#19294d; }
+.admin-panel-header p { margin:0; color:#68758d; }
+#admin-close { width:34px; height:34px; flex:0 0 34px; border:1px solid #e0e6f0; border-radius:50%; background:#f6f8fc; color:#64748b; font-size:22px; cursor:pointer; }
+#admin-close:hover { background:#eaf0ff; color:#365bd6; }
+.admin-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:20px 0; }
+.admin-stat { display:flex; flex-direction:column; gap:4px; padding:16px; border:1px solid #e6ebf4; border-radius:13px; background:#f7f9ff; }
+.admin-stat strong { color:#365bd6; font-size:25px; }
+.admin-stat span { color:#697790; font-size:13px; }
+#admin-status { color:#68758d; font-size:14px; }
+.admin-report-card { margin:12px 0; padding:16px; border:1px solid #e3e9f2; border-radius:13px; background:#fff; }
+.admin-report-card h3 { margin:0 0 8px; font-size:16px; color:#24385f; }
+.admin-report-card p { margin:6px 0; color:#53627a; overflow-wrap:anywhere; }
+.admin-report-reason { padding:10px 12px; border-radius:9px; background:#f5f7fb; white-space:pre-wrap; }
+.admin-report-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.admin-report-actions button { padding:8px 12px; border:1px solid #dce3ef; border-radius:8px; background:#fff; color:#263b67; cursor:pointer; }
+.admin-report-actions button:disabled { opacity:.55; cursor:wait; }
+.admin-report-actions .admin-delete-post { color:#b42318; border-color:#edc5c2; }
+.admin-empty { padding:26px; border:1px dashed #d8e0ed; border-radius:12px; text-align:center; color:#68758d; }
+@media(max-width:560px) { .admin-panel { padding:17px; } }
+
+
+/* StudyConnect video tutorial */
+#tutorial-button {
+  display:inline-flex; align-items:center; gap:7px;
+  border:1px solid #d8e2f5; border-radius:999px;
+  padding:9px 14px; background:#eef3ff; color:#294a91;
+  font-weight:650; cursor:pointer; white-space:nowrap;
+}
+#tutorial-button:hover { background:#e1eaff; border-color:#b9cbf2; }
+#tutorial-dialog {
+  width:min(92vw, 1000px); max-width:1000px;
+  max-height:90vh; padding:0; border:0; border-radius:18px;
+  overflow:hidden; background:#fff; color:#17233c;
+  box-shadow:0 24px 80px rgba(10,25,50,.35);
+}
+#tutorial-dialog::backdrop { background:rgba(12,25,48,.72); }
+.tutorial-panel { display:flex; flex-direction:column; max-height:90vh; }
+.tutorial-heading {
+  display:flex; justify-content:space-between; align-items:center;
+  gap:14px; padding:15px 18px; border-bottom:1px solid #e6ebf3;
+}
+.tutorial-heading h2 { margin:0; font-size:18px; }
+#tutorial-close {
+  width:32px; height:32px; flex:0 0 32px; border:1px solid #e1e7f0;
+  border-radius:50%; background:#f7f9fc; color:#52627a;
+  font-size:21px; cursor:pointer; line-height:1;
+}
+#tutorial-video {
+  display:block; width:100%; max-height:calc(90vh - 72px);
+  background:#101b2d; object-fit:contain;
+}
+@media(max-width:650px) {
+  #tutorial-button { padding:8px 10px; font-size:12px; }
+  #tutorial-dialog { width:96vw; }
+  .tutorial-heading h2 { font-size:16px; }
+}
+
 </style>
 
 
@@ -414,6 +483,8 @@
     <a class="logo" href="index.html">StudyConnect</a>
     <nav aria-label="Account">
       <button type="button" id="profile-button" hidden>My Profile</button>
+      <button type="button" id="admin-button" hidden>Admin Panel</button>
+      <button type="button" id="tutorial-button" aria-haspopup="dialog" aria-controls="tutorial-dialog">▶ Video tutorial</button>
        <button type="button" id="messages-button" aria-controls="messages-dialog" aria-haspopup="dialog">Messages</button>
       <button type="button" id="login-button">Log in</button>
       <button type="button" id="register-button">Sign up</button>
@@ -699,7 +770,27 @@
     <button type="button" id="auth-close">Cancel</button>
   </form>
 </dialog>
-  <script type="module">
+  
+<dialog id="admin-dialog" aria-labelledby="admin-title">
+  <section class="admin-panel">
+    <header class="admin-panel-header">
+      <div>
+        <span class="admin-kicker">STUDYCONNECT MODERATION</span>
+        <h2 id="admin-title">Administrator Panel</h2>
+        <p>Review student reports and moderate announcements.</p>
+      </div>
+      <button type="button" id="admin-close" aria-label="Close">×</button>
+    </header>
+    <div class="admin-stats">
+      <div class="admin-stat"><strong id="admin-total">0</strong><span>Total reports</span></div>
+      <div class="admin-stat"><strong id="admin-pending">0</strong><span>Pending review</span></div>
+    </div>
+    <p id="admin-status" role="status" aria-live="polite">Reports will appear here.</p>
+    <div id="admin-reports"></div>
+  </section>
+</dialog>
+
+<script type="module">
   // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
   // TODO: Add SDKs for Firebase products that you want to use
@@ -909,6 +1000,241 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const postDb = getFirestore(app);
+
+// ---------------- STUDYCONNECT ADMIN MODERATION ----------------
+// Only users whose Firestore users/{uid}.role is "admin" can open this panel.
+// Firestore Security Rules must independently enforce the same permissions.
+const adminButton = document.getElementById("admin-button");
+const adminDialog = document.getElementById("admin-dialog");
+const adminCloseButton = document.getElementById("admin-close");
+const adminReportsContainer = document.getElementById("admin-reports");
+const adminStatus = document.getElementById("admin-status");
+const adminTotal = document.getElementById("admin-total");
+const adminPending = document.getElementById("admin-pending");
+let stopAdminReportsListener = null;
+
+// Admin access is tied to the three approved Firebase Authentication email accounts.
+// Firestore Security Rules independently enforce the same allowlist.
+const STUDYCONNECT_ADMIN_EMAILS = new Set([
+  "aa.sadvakassova@gmail.com", // Aizhan
+  "sultanovagkhr@gmail.com",   // Gaukhar
+  "paskal492@gmail.com"        // Adiya
+]);
+
+async function studyConnectIsAdmin(user = auth.currentUser) {
+  if (!user || !user.email) return false;
+  return STUDYCONNECT_ADMIN_EMAILS.has(user.email.trim().toLowerCase());
+}
+
+function studyConnectSetAdminStatus(message) {
+  adminStatus.textContent = message;
+}
+
+function studyConnectRenderReports(snapshot) {
+  adminReportsContainer.replaceChildren();
+  const reports = snapshot.docs;
+  const pendingCount = reports.filter(d => (d.data().status || "pending") === "pending").length;
+  adminTotal.textContent = String(reports.length);
+  adminPending.textContent = String(pendingCount);
+
+  if (!reports.length) {
+    const empty = document.createElement("div");
+    empty.className = "admin-empty";
+    empty.textContent = "No student reports yet.";
+    adminReportsContainer.append(empty);
+    return;
+  }
+
+  for (const reportDocument of reports) {
+    const report = reportDocument.data();
+    const card = document.createElement("article");
+    card.className = "admin-report-card";
+
+    const heading = document.createElement("h3");
+    heading.textContent = report.postTitle || "Reported announcement";
+
+    const meta = document.createElement("p");
+    const when = report.createdAt?.toDate
+      ? report.createdAt.toDate().toLocaleString()
+      : "Date unavailable";
+    meta.textContent = `Reported by ${report.reporterName || "Student"} · ${when}`;
+
+    const postId = document.createElement("p");
+    postId.textContent = `Post ID: ${report.postId || "—"}`;
+
+    const reason = document.createElement("p");
+    reason.className = "admin-report-reason";
+    reason.textContent = report.reason || "No reason provided.";
+
+    const status = document.createElement("p");
+    status.textContent = `Status: ${report.status || "pending"}`;
+    card.append(heading, meta, postId, reason, status);
+
+    const actions = document.createElement("div");
+    actions.className = "admin-report-actions";
+
+    const viewButton = document.createElement("button");
+    viewButton.type = "button";
+    viewButton.textContent = "View announcement";
+    viewButton.addEventListener("click", async () => {
+      try {
+        const postSnapshot = await getDoc(doc(postDb, "posts", String(report.postId)));
+        if (!postSnapshot.exists()) {
+          studyConnectSetAdminStatus("The reported announcement no longer exists.");
+          return;
+        }
+        const post = postSnapshot.data();
+        studyConnectSetAdminStatus(
+          `Announcement: ${post.title || "Untitled"} · ${post.subject || ""} · ${post.location || ""}`
+        );
+      } catch (error) {
+        console.error("Could not view reported post:", error);
+        studyConnectSetAdminStatus("Could not load the announcement. Check Firestore permissions.");
+      }
+    });
+    actions.append(viewButton);
+
+    if ((report.status || "pending") === "pending") {
+      const reviewButton = document.createElement("button");
+      reviewButton.type = "button";
+      reviewButton.textContent = "Mark as reviewed";
+      reviewButton.addEventListener("click", async () => {
+        reviewButton.disabled = true;
+        try {
+          if (!(await studyConnectIsAdmin())) throw new Error("Admin access denied.");
+          await updateDoc(reportDocument.ref, {
+            status: "reviewed",
+            reviewedBy: auth.currentUser.uid,
+            reviewedAt: serverTimestamp()
+          });
+        } catch (error) {
+          console.error("Could not review report:", error);
+          studyConnectSetAdminStatus(error.code === "permission-denied"
+            ? "Permission denied. Publish the updated Firestore Rules."
+            : (error.message || "Could not update report."));
+          reviewButton.disabled = false;
+        }
+      });
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "admin-delete-post";
+      deleteButton.textContent = "Remove announcement";
+      deleteButton.addEventListener("click", async () => {
+        if (!window.confirm("Permanently remove this announcement?")) return;
+        deleteButton.disabled = true;
+        try {
+          if (!(await studyConnectIsAdmin())) throw new Error("Admin access denied.");
+          await deleteDoc(doc(postDb, "posts", String(report.postId)));
+          await updateDoc(reportDocument.ref, {
+            status: "removed",
+            reviewedBy: auth.currentUser.uid,
+            reviewedAt: serverTimestamp()
+          });
+          studyConnectSetAdminStatus("Announcement removed and report updated.");
+        } catch (error) {
+          console.error("Could not remove reported post:", error);
+          studyConnectSetAdminStatus(error.code === "permission-denied"
+            ? "Permission denied. Check the updated Firestore Rules."
+            : (error.message || "Could not remove announcement."));
+          deleteButton.disabled = false;
+        }
+      });
+      actions.append(reviewButton, deleteButton);
+    }
+
+    card.append(actions);
+    adminReportsContainer.append(card);
+  }
+}
+
+async function studyConnectOpenAdminPanel() {
+  adminDialog.showModal();
+  adminReportsContainer.replaceChildren();
+  studyConnectSetAdminStatus("Checking administrator permissions...");
+
+  try {
+    if (!(await studyConnectIsAdmin())) {
+      adminDialog.close();
+      window.alert("Administrator access is required.");
+      return;
+    }
+
+    if (stopAdminReportsListener) stopAdminReportsListener();
+
+    const reportsQuery = query(
+      collection(postDb, "reports"),
+      orderBy("createdAt", "desc"),
+      limit(100)
+    );
+
+    stopAdminReportsListener = onSnapshot(
+      reportsQuery,
+      studyConnectRenderReports,
+      error => {
+        console.error("Admin reports listener error:", error);
+        studyConnectSetAdminStatus(error.code === "permission-denied"
+          ? "Cannot read reports. Publish the administrator Firestore Rules."
+          : "Could not load reports.");
+      }
+    );
+
+    studyConnectSetAdminStatus("Reports are updated in real time.");
+  } catch (error) {
+    console.error("Admin panel error:", error);
+    adminDialog.close();
+    window.alert(error.message || "Could not open administrator panel.");
+  }
+}
+
+adminButton.addEventListener("click", studyConnectOpenAdminPanel);
+adminCloseButton.addEventListener("click", () => adminDialog.close());
+adminDialog.addEventListener("close", () => {
+  if (stopAdminReportsListener) {
+    stopAdminReportsListener();
+    stopAdminReportsListener = null;
+  }
+});
+
+onAuthStateChanged(auth, async user => {
+  adminButton.hidden = true;
+  if (stopAdminReportsListener) {
+    stopAdminReportsListener();
+    stopAdminReportsListener = null;
+  }
+  if (!user) return;
+  try {
+    adminButton.hidden = !(await studyConnectIsAdmin(user));
+  } catch (error) {
+    console.error("Could not verify admin role:", error);
+  }
+});
+
+// Student report submission function called by app.js.
+window.studyConnectReportPost = async post => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Please log in to report an announcement.");
+  if (!post || !post.id) throw new Error("This announcement cannot be reported.");
+  if (post.ownerId === user.uid) throw new Error("You cannot report your own announcement.");
+
+  const reason = window.prompt("Why are you reporting this announcement? (maximum 500 characters)");
+  if (reason === null) return "Report cancelled.";
+  const cleanReason = reason.trim();
+  if (!cleanReason) throw new Error("Please enter a reason.");
+  if (cleanReason.length > 500) throw new Error("The reason must be 500 characters or fewer.");
+
+  await addDoc(collection(postDb, "reports"), {
+    postId: String(post.id),
+    postTitle: String(post.title || "Study announcement").slice(0, 120),
+    reporterId: user.uid,
+    reporterName: String(user.displayName || "Student").slice(0, 60),
+    reason: cleanReason,
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+  return "Report submitted. Thank you for helping keep StudyConnect safe.";
+};
+
 
 async function ensureUserProfile(user) {
   if (!user) return;
@@ -2279,5 +2605,40 @@ if (studyConnectPostsContainer) {
 }
 
 </script>
+
+  <dialog id="tutorial-dialog" aria-labelledby="tutorial-title">
+    <div class="tutorial-panel">
+      <div class="tutorial-heading">
+        <h2 id="tutorial-title">StudyConnect — Video Tutorial</h2>
+        <button type="button" id="tutorial-close" aria-label="Close video tutorial">×</button>
+      </div>
+      <video id="tutorial-video" controls playsinline preload="metadata">
+        <source src="tutorial.mp4" type="video/mp4">
+        Your browser does not support HTML video.
+      </video>
+    </div>
+  </dialog>
+  <script>
+    (() => {
+      const openButton = document.getElementById("tutorial-button");
+      const dialog = document.getElementById("tutorial-dialog");
+      const closeButton = document.getElementById("tutorial-close");
+      const video = document.getElementById("tutorial-video");
+      if (!openButton || !dialog || !closeButton || !video) return;
+      openButton.addEventListener("click", () => {
+        dialog.showModal();
+      });
+      const closeTutorial = () => {
+        video.pause();
+        dialog.close();
+      };
+      closeButton.addEventListener("click", closeTutorial);
+      dialog.addEventListener("click", event => {
+        if (event.target === dialog) closeTutorial();
+      });
+      dialog.addEventListener("close", () => video.pause());
+    })();
+  </script>
+
 </body>
 </html>

@@ -202,6 +202,32 @@ dialog.append(
 
   dialog.append(deleteButton, deleteMessage);
 }
+
+if (window.studyConnectUserId?.() !== post.ownerId) {
+  const reportButton = createTextElement("button", "Report post");
+  reportButton.type = "button";
+  reportButton.style.marginTop = "12px";
+  reportButton.style.color = "#b42318";
+  const reportMessage = createTextElement("p", "");
+  reportMessage.setAttribute("role", "status");
+
+  reportButton.addEventListener("click", async () => {
+    if (reportButton.disabled) return;
+    reportButton.disabled = true;
+    reportMessage.textContent = "Submitting report...";
+    try {
+      reportMessage.textContent = await window.studyConnectReportPost(post);
+    } catch (error) {
+      console.error("Report submission failed:", error);
+      reportMessage.textContent = error.message || "Could not submit report.";
+    } finally {
+      reportButton.disabled = false;
+    }
+  });
+
+  dialog.append(reportButton, reportMessage);
+}
+
 if (window.studyConnectUserId?.() !== post.ownerId) {
   const applyButton = createTextElement("button", "Apply to join");
   applyButton.type = "button";
